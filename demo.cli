@@ -1,0 +1,26 @@
+embed-server
+
+/subsystem=elytron/dir-context=dir-context-localhost:add(url="ldap://127.0.0.1:10389",principal="uid=admin,ou=system",credential-reference={clear-text=secret})
+/subsystem=elytron/ldap-realm=ldap-realm-localhost:add(dir-context=dir-context-localhost,identity-mapping={rdn-identifier=krb5PrincipalName,search-base-dn="ou=Users,dc=jboss,dc=org"})
+/subsystem=elytron/security-domain=ldap-security-domain:add(realms=[{realm=ldap-realm-localhost,role-decoder=groups-to-roles}],default-realm=ldap-realm-localhost,permission-mapper=default-permission-mapper)
+
+/subsystem=elytron/kerberos-security-factory=krbRemote:add( \
+  principal="remote/localhost@JBOSS.ORG", \
+  path="/tmp/kerberos-using-apacheds/remote-localhost-remotepwd.keytab")
+
+/system-property=java.security.krb5.conf:add(value="/tmp/kerberos-using-apacheds/krb5.conf")
+/system-property=sun.security.krb5.debug:add(value="true")
+
+/subsystem=elytron/sasl-authentication-factory=kerberos-sasl-auth:add( \
+  sasl-server-factory=configured, \
+  security-domain=ldap-security-domain, \
+  mechanism-configurations=[{ \
+      mechanism-name=GSSAPI,\
+      mechanism-realm-configurations=[{ realm-name=ldap-realm-localhost }], \
+      credential-security-factory=krbRemote }])
+
+/core-service=management/management-interface=http-interface:write-attribute(name=http-upgrade.sasl-authentication-factory, value=kerberos-sasl-auth)
+
+/subsystem=elytron/configurable-sasl-server-factory=configured:list-add(name=filters, value={pattern-filter=GSSAPI})
+
+stop-embedded-server

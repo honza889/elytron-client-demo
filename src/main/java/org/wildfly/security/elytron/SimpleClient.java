@@ -30,13 +30,11 @@ import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.client.MatchRule;
 
 /**
- * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
+ * @author Josef Cacek
  */
 public class SimpleClient {
 
-    
-    private static final String LOOPBACK = "127.0.0.1";
-    private static final String HOSTNAME = System.getProperty("hostname", LOOPBACK);
+    private static final String HOSTNAME = System.getProperty("hostname", "127.0.0.1");
 
     public static void main(String[] args) throws Exception {
         Runnable runnable = new Runnable() {
@@ -69,19 +67,12 @@ public class SimpleClient {
         
         System.out.println(">>> Demo - AuthenticationContext created programatically");
         
-        AuthenticationConfiguration common = AuthenticationConfiguration.EMPTY
-                .useProviders(() -> new Provider[] { new WildFlyElytronProvider() })
-                .allowSaslMechanisms("DIGEST-MD5")
-                .useRealm("ManagementRealm");
-
-
         AuthenticationContext context = AuthenticationContext.empty();
         
-        AuthenticationConfiguration administrator = common.useName("administrator").usePassword("password1!");
-        context = context.with(MatchRule.ALL.matchHost("localhost"), administrator);
-        
-        AuthenticationConfiguration monitor = common.useName("monitor").usePassword("password1!");
-        context = context.with(MatchRule.ALL, monitor);
+        context = context.with(MatchRule.ALL, AuthenticationConfiguration.EMPTY
+                .useProviders(() -> new Provider[] { new WildFlyElytronProvider() })
+                .allowSaslMechanisms("GSSAPI")
+                );
 
         context.run(runnable);
     }
