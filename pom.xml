@@ -12,17 +12,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.org.wildfly.core>3.0.0.Alpha17</version.org.wildfly.core>
+        <version.org.wildfly.core>3.0.0.Beta15</version.org.wildfly.core>
         <main.class>org.wildfly.security.elytron.SimpleClient</main.class>
     </properties>
 
     <build>
         <finalName>${project.artifactId}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

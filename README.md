@@ -41,8 +41,17 @@ bin/standalone.sh
 ```
 
 
-## Run demo
+## Authenticate to kerberos and run demo
+
+Use "**secret**" as a password for hnelson user.
 
 ```bash
-mvn package exec:java -Djava.security.krb5.conf=/tmp/kerberos-using-apacheds/krb5.conf -Djavax.security.auth.useSubjectCredsOnly=false
+KRB5_CONFIG=/tmp/kerberos-using-apacheds/krb5.conf kinit hnelson@JBOSS.ORG
+```
+
+You can run the demo directly from the Maven build:
+
+```bash
+mvn clean package
+java -Djava.security.krb5.conf=/tmp/kerberos-using-apacheds/krb5.conf -Djavax.security.auth.useSubjectCredsOnly=false -jar target/elytron-client-demo.jar
 ```
