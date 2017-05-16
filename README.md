@@ -33,10 +33,16 @@ bin/add-user.sh -u monitor -p password1! -s
 bin/add-user.sh -u administrator -p password1! -s
 ```
 
-### Run WildFly with Elytron profile
+### Enable Elytron across the server
 
 ```bash
-bin/standalone.sh -c standalone-elytron.xml
+bin/jboss-cli.sh --file=enable-elytron.cli
+```
+
+### Run WildFly/EAP
+
+```bash
+bin/standalone.sh
 ```
 
 ## Run demo
@@ -75,7 +81,7 @@ The first part of the demo should still report `$local`user, but the second part
 By setting system property `wildfly.config.url` you can control from which location is the default `AuthenticationContext` configuration loaded.
 
 ```bash
-mvn package exec:java -Dwildfly.config.url=https://rawgit.com/jboss-security-qe/elytron-client-demo/master/custom-config.xml
+mvn package exec:java -Dwildfly.config.url=custom-config.xml
 ```
 The first part of the demo should now report the same user as the second one:
 ```
