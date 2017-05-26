@@ -12,9 +12,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.org.wildfly.core>3.0.0.Beta21</version.org.wildfly.core>
-        <version.org.wildfly.security.elytron>1.1.0.Beta42</version.org.wildfly.security.elytron>
-        <version.org.wildfly.common>1.2.0.Beta8</version.org.wildfly.common>
+        <version.org.wildfly.core>3.0.0.Beta22</version.org.wildfly.core>
+        <version.org.wildfly.security.elytron>1.1.0.Beta44</version.org.wildfly.security.elytron>
+        <version.org.wildfly.common>1.2.0.Beta10</version.org.wildfly.common>
         <main.class>org.wildfly.security.elytron.SimpleClient</main.class>
     </properties>
 
@@ -81,12 +81,10 @@
             <artifactId>wildfly-elytron</artifactId>
             <version>${version.org.wildfly.security.elytron}</version>
         </dependency>
-        <!-- 
         <dependency>
             <groupId>org.wildfly.common</groupId>
             <artifactId>wildfly-common</artifactId>
             <version>${version.org.wildfly.common}</version>
         </dependency>
-         -->
     </dependencies>
 </project>
