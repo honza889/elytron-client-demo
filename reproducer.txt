@@ -1,0 +1,60 @@
+
+/subsystem=remoting/http-connector=http-remoting-connector:write-attribute(name=sasl-authentication-factory, value=application-sasl-authentication)
+/subsystem=remoting/http-connector=http-remoting-connector:undefine-attribute(name=security-realm)
+
+
+                <sasl-authentication-factory name="application-sasl-authentication" sasl-server-factory="configured" security-domain="ApplicationDomain">
+                    <mechanism-configuration>
+                        <mechanism mechanism-name="SCRAM-SHA-1">
+                            <mechanism-realm realm-name="ApplicationRealm"/>
+                        </mechanism>
+                        <mechanism mechanism-name="SCRAM-SHA-1-PLUS">
+                            <mechanism-realm realm-name="ApplicationRealm"/>
+                        </mechanism>
+                    </mechanism-configuration>
+                </sasl-authentication-factory>
+
+
+
+                <properties-realm name="ApplicationRealm">
+                    <users-properties path="application-users.properties" relative-to="jboss.server.config.dir" digest-realm-name="ApplicationRealm" plain-text="true"/>
+
+
+Enable SSL: https://honza889.github.io/2017/10/13/keystore-reload/
+
+0) Test with binding:
+
+.setSaslMechanismSelector(SaslMechanismSelector.NONE.addMechanism("SCRAM-SHA-1-PLUS"))
+
+                <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
+                    <mechanism-configuration>
+                        <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local"/>
+                        <mechanism mechanism-name="SCRAM-SHA-1-PLUS">
+                            <mechanism-realm realm-name="ManagementRealm"/>
+                        </mechanism>
+                    </mechanism-configuration>
+                </sasl-authentication-factory>
+
+a) Test SCRAM-SHA-1 when client does not support binding:
+
+.setSaslMechanismSelector(SaslMechanismSelector.NONE.addMechanism("SCRAM-SHA-1"))
+.useMechanismProperties(Collections.singletonMap(WildFlySasl.CHANNEL_BINDING_UNSUPPORTED, "true"))
+
+b) Test SCRAM-SHA-1 when server does not support binding:
+
+                <sasl-authentication-factory name="management-sasl-authentication" sasl-server-factory="configured" security-domain="ManagementDomain">
+                    <mechanism-configuration>
+                        <mechanism mechanism-name="JBOSS-LOCAL-USER" realm-mapper="local"/>
+                        <mechanism mechanism-name="SCRAM-SHA-1">
+                            <mechanism-realm realm-name="ManagementRealm"/>
+                        </mechanism>
+                    </mechanism-configuration>
+                </sasl-authentication-factory>
+
+                <configurable-sasl-server-factory name="configured" sasl-server-factory="elytron">
+                    <properties>
+                        <property name="wildfly.sasl.local-user.default-user" value="$local"/>
+                        <property name="wildfly.sasl.channel-binding-unsupported" value="true"/>
+                    </properties>
+                </configurable-sasl-server-factory>
+

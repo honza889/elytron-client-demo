@@ -17,7 +17,10 @@
  */
 package org.wildfly.security.elytron;
 
+import java.io.FileInputStream;
+import java.security.KeyStore;
 import java.security.Provider;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,6 +31,12 @@ import org.wildfly.security.WildFlyElytronProvider;
 import org.wildfly.security.auth.client.AuthenticationConfiguration;
 import org.wildfly.security.auth.client.AuthenticationContext;
 import org.wildfly.security.auth.client.MatchRule;
+import org.wildfly.security.sasl.SaslMechanismSelector;
+import org.wildfly.security.sasl.WildFlySasl;
+import org.wildfly.security.ssl.SSLContextBuilder;
+
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
@@ -43,7 +52,10 @@ public class SimpleClient {
             public void run() {
                 try {
                     ModelControllerClient client = ModelControllerClient.Factory
-                            .create(new ModelControllerClientConfiguration.Builder().setHostName(HOSTNAME).setPort(9990)
+                            .create(new ModelControllerClientConfiguration.Builder()
+                                    .setHostName(HOSTNAME)
+                                    .setPort(9993)
+                                    .setProtocol("remote+https")
                                     .setConnectionTimeout(36000).build());
 
                     ModelNode operation = new ModelNode();
@@ -62,27 +74,26 @@ public class SimpleClient {
                 }
             }
         };
-
-        System.out.println(">>> Demo - default AuthenticationContext (from wildfly-config)");
-        
-        runnable.run();
         
         System.out.println(">>> Demo - AuthenticationContext created programatically");
-        
-        AuthenticationConfiguration common = AuthenticationConfiguration.EMPTY
-                .useProviders(() -> new Provider[] { new WildFlyElytronProvider() })
-                .allowSaslMechanisms("DIGEST-MD5")
-                .useRealm("ManagementRealm");
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("/home/jkalina/work/wildfly/build/target/wildfly-12.0.0.Alpha1-SNAPSHOT/standalone/configuration/keystore.jks"), "secret1".toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        tmf.init(ks);
 
-
-        AuthenticationContext context = AuthenticationContext.empty();
-        
-        AuthenticationConfiguration administrator = common.useName("administrator").usePassword("password1!");
-        context = context.with(MatchRule.ALL.matchHost("localhost"), administrator);
-        
-        AuthenticationConfiguration monitor = common.useName("monitor").usePassword("password1!");
-        context = context.with(MatchRule.ALL, monitor);
-
+        AuthenticationContext context = AuthenticationContext.empty()
+                .with(MatchRule.ALL, AuthenticationConfiguration.empty()
+                        .useProviders(() -> new Provider[] { new WildFlyElytronProvider() })
+                        //.setSaslMechanismSelector(SaslMechanismSelector.NONE.addMechanism("SCRAM-SHA-1-PLUS"))
+                        .setSaslMechanismSelector(SaslMechanismSelector.NONE.addMechanism("SCRAM-SHA-1"))
+                        .useName("admin")
+                        .usePassword("admin")
+                        //.useMechanismProperties(Collections.singletonMap(WildFlySasl.CHANNEL_BINDING_UNSUPPORTED, "true"))
+                ).withSsl(MatchRule.ALL, new SSLContextBuilder()
+                .setTrustManager((X509TrustManager) tmf.getTrustManagers()[0])
+                .setClientMode(true)
+                .build()
+        );
         context.run(runnable);
     }
 
